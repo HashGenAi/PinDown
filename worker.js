@@ -11,7 +11,7 @@ export default {
         });
       }
 
-      // Fetch Pinterest page with proper headers
+      // Fetch Pinterest page
       const response = await fetch(pinUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
@@ -24,9 +24,9 @@ export default {
 
       const html = await response.text();
 
-      // Extract image URL from page HTML
-      // Note: JS regex literals need only single backslash for /
-      const match = html.match(/"url":"(https:\/\/i\.pinimg\.com[^"]+)"/);
+      // ✅ Use RegExp constructor — NO regex literal
+      const regex = new RegExp('"url":"(https://i\\.pinimg\\.com[^"]+)"', 'i');
+      const match = html.match(regex);
 
       if (!match) {
         return new Response(JSON.stringify({ error: "Pinterest blocked or no image found" }), {
