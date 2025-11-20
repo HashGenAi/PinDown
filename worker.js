@@ -24,7 +24,7 @@ export default {
 
       const html = await response.text();
 
-      // ✅ Use RegExp constructor — NO regex literal
+      // ✅ Use RegExp constructor — DO NOT use regex literal
       const regex = new RegExp('"url":"(https://i\\.pinimg\\.com[^"]+)"', 'i');
       const match = html.match(regex);
 
