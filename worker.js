@@ -25,7 +25,8 @@ export default {
       const html = await response.text();
 
       // Extract image URL from page HTML
-      const match = html.match(/"url":"(https:\\/\\/i\.pinimg\.com[^"]+)"/);
+      // Note: JS regex literals need only single backslash for /
+      const match = html.match(/"url":"(https:\/\/i\.pinimg\.com[^"]+)"/);
 
       if (!match) {
         return new Response(JSON.stringify({ error: "Pinterest blocked or no image found" }), {
