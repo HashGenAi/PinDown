@@ -1,9 +1,9 @@
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const pinterestUrl = url.searchParams.get("url");
+    const target = url.searchParams.get("url");
 
-    if (!pinterestUrl) {
+    if (!target) {
       return new Response(JSON.stringify({ error: "Missing url parameter" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -11,46 +11,30 @@ export default {
     }
 
     try {
-      const res = await fetch(pinterestUrl, {
+      const res = await fetch(target, {
         headers: {
           "User-Agent": "Mozilla/5.0",
-          Accept: "text/html",
         },
       });
 
-      const html = await res.text();
+      const body = await res.arrayBuffer();
+      const response = new Response(body, {
+        status: res.status,
+        statusText: res.statusText,
+        headers: res.headers,
+      });
 
-      // Pinterest embeds JSON in <script id="__PWS_DATA__">...</script>
-      const jsonMatch = html.match(/<script id="__PWS_DATA__" type="application\/json">(.+?)<\/script>/);
-      if (!jsonMatch) {
-        return new Response(JSON.stringify({ error: "Video data not found" }), {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
+      // Add CORS headers
+      response.headers.set("Access-Control-Allow-Origin", "*");
+      response.headers.set("Access-Control-Allow-Methods", "GET,HEAD,POST,OPTIONS");
+      response.headers.set("Access-Control-Allow-Headers", "*");
 
-      const data = JSON.parse(jsonMatch[1]);
-      // Navigate JSON to find video URL
-      const videoUrl =
-        data?.props?.initialReduxState?.pins &&
-        Object.values(data.props.initialReduxState.pins)[0]?.videos?.video_list?.V_HLS?.url ||
-        Object.values(data.props.initialReduxState.pins)[0]?.videos?.video_list?.V_720P?.url;
-
-      if (videoUrl) {
-        return new Response(JSON.stringify({ video: videoUrl }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      } else {
-        return new Response(JSON.stringify({ error: "Video URL not found" }), {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
+      return response;
     } catch (err) {
       return new Response(JSON.stringify({ error: "Fetch failed", details: String(err) }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
-  },
+  }
 };
