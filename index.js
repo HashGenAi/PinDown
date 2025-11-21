@@ -22,7 +22,7 @@ export default {
         headers: { "Content-Type": "application/json" }
       });
     } catch (err) {
-      return new Response(JSON.stringify({ error: "Fetch failed" }), {
+      return new Response(JSON.stringify({ error: "Fetch failed", details: String(err) }), {
         status: 500,
         headers: { "Content-Type": "application/json" }
       });
