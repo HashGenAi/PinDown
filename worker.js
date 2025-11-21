@@ -1,51 +1,43 @@
-export default {
-  async fetch(request) {
-    try {
-      const url = new URL(request.url);
-      const pinUrl = url.searchParams.get("url");
+addEventListener("fetch", event => {
+  event.respondWith(handleRequest(event.request));
+});
 
-      if (!pinUrl) {
-        return new Response(JSON.stringify({ error: "No URL provided" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  const pinterestUrl = url.searchParams.get("url");
+
+  if (!pinterestUrl) {
+    return new Response(JSON.stringify({ error: "Missing url parameter" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
+  try {
+    const res = await fetch(pinterestUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+                      "(KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
       }
+    });
 
-      // Fetch Pinterest page
-      const response = await fetch(pinUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                        "AppleWebKit/537.36 (KHTML, like Gecko) " +
-                        "Chrome/117.0.0.0 Safari/537.36",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Referer": "https://www.pinterest.com/"
-        }
+    const html = await res.text();
+    const match = html.match(/https?:\/\/[^\s"'<>]+\.mp4[^\s"'<>]*/i);
+
+    if (match) {
+      return new Response(JSON.stringify({ video: match[0] }), {
+        headers: { "Content-Type": "application/json" }
       });
-
-      const html = await response.text();
-
-      // ✅ Use RegExp constructor — DO NOT use regex literal
-      const regex = new RegExp('"url":"(https://i\\.pinimg\\.com[^"]+)"', 'i');
-      const match = html.match(regex);
-
-      if (!match) {
-        return new Response(JSON.stringify({ error: "Pinterest blocked or no image found" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      const imageUrl = match[1].replace(/\\u0026/g, "&");
-
-      return new Response(JSON.stringify({ image: imageUrl }), {
-        headers: { "Content-Type": "application/json" },
-      });
-
-    } catch (e) {
-      return new Response(JSON.stringify({ error: "Server error: " + e.toString() }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+    } else {
+      return new Response(JSON.stringify({ error: "Video not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" }
       });
     }
+  } catch (err) {
+    return new Response(JSON.stringify({ error: "Fetch failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
-};
+}
