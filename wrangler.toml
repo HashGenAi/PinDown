@@ -1,3 +1,4 @@
-name = "pinterest-downloader"
-main = "worker.js"
-compatibility_date = "2025-11-20"
+name = "pindown"
+main = "index.js"
+compatibility_date = "2025-11-21"
+type = "esm"  # Important! Must be 'esm' for module workers
