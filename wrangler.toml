@@ -1,4 +1,4 @@
 name = "pindown"
-main = "index.js"
+main = "worker.js"
 compatibility_date = "2025-11-21"
 type = "esm"  # Important! Must be 'esm' for module workers
