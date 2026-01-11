@@ -3,8 +3,8 @@ importScripts("https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js");
 onmessage = async (e) => {
   const files = e.data;
 
-  for(const file of files){
-    try{
+  for (const file of files) {
+    try {
       const pngBlob = await heic2any({
         blob: file,
         toType: "image/png",
@@ -15,10 +15,10 @@ onmessage = async (e) => {
         blob: pngBlob,
         name: file.name.replace(/\.(heic|heif)$/i, ".png")
       });
-    }catch(err){
-      console.error(err);
+    } catch (err) {
+      console.error("Conversion failed:", err);
     }
   }
 
-  postMessage({ done:true });
+  postMessage({ done: true });
 };
