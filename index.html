@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HEIC to PNG (No Freeze)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  background:#0f172a;
+  font-family:Arial,Helvetica,sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  color:#fff;
+}
+.box{
+  background:#020617;
+  padding:30px;
+  border-radius:12px;
+  width:100%;
+  max-width:420px;
+  text-align:center;
+}
+button{
+  background:#22c55e;
+  border:none;
+  padding:12px 18px;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
+button:disabled{ background:#334155; }
+.status{
+  margin-top:15px;
+  font-size:14px;
+  color:#94a3b8;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h2>HEIC to PNG</h2>
+  <p>Private • No Upload • No Freeze</p>
+
+  <input type="file" id="files" multiple accept=".heic,.heif">
+  <br><br>
+  <button id="btn">Convert</button>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const worker = new Worker("worker.js");
+const btn = document.getElementById("btn");
+const status = document.getElementById("status");
+const input = document.getElementById("files");
+
+btn.onclick = () => {
+  if(!input.files.length){
+    alert("Select HEIC files first");
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = "Converting...";
+
+  worker.postMessage(input.files);
+};
+
+worker.onmessage = (e) => {
+  if(e.data.done){
+    status.textContent = "Done ✔";
+    btn.disabled = false;
+    return;
+  }
+
+  const { blob, name } = e.data;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+};
+</script>
+</body>
+</html>
