@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>HEIC to PNG (No Freeze)</title>
+<title>HEIC to PNG – No Freeze</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -24,6 +24,12 @@ body{
   max-width:420px;
   text-align:center;
 }
+h2{ margin:0 0 10px; }
+p{
+  color:#94a3b8;
+  font-size:14px;
+}
+input{ margin:15px 0; }
 button{
   background:#22c55e;
   border:none;
@@ -32,7 +38,10 @@ button{
   font-size:16px;
   cursor:pointer;
 }
-button:disabled{ background:#334155; }
+button:disabled{
+  background:#334155;
+  cursor:not-allowed;
+}
 .status{
   margin-top:15px;
   font-size:14px;
@@ -46,43 +55,47 @@ button:disabled{ background:#334155; }
   <h2>HEIC to PNG</h2>
   <p>Private • No Upload • No Freeze</p>
 
-  <input type="file" id="files" multiple accept=".heic,.heif">
-  <br><br>
-  <button id="btn">Convert</button>
+  <input type="file" id="files" accept=".heic,.heif" multiple>
+  <br>
+  <button id="btn">Convert to PNG</button>
 
   <div class="status" id="status"></div>
 </div>
 
 <script>
-const worker = new Worker("worker.js");
+const worker = new Worker("./worker.js");
 const btn = document.getElementById("btn");
 const status = document.getElementById("status");
 const input = document.getElementById("files");
 
-btn.onclick = () => {
-  if(!input.files.length){
-    alert("Select HEIC files first");
+btn.addEventListener("click", () => {
+  if (!input.files.length) {
+    alert("Please select HEIC files first");
     return;
   }
 
   btn.disabled = true;
   status.textContent = "Converting...";
 
-  worker.postMessage(input.files);
-};
+  // IMPORTANT FIX: send real array, not FileList
+  worker.postMessage([...input.files]);
+});
 
 worker.onmessage = (e) => {
-  if(e.data.done){
+  if (e.data.done) {
     status.textContent = "Done ✔";
     btn.disabled = false;
     return;
   }
 
   const { blob, name } = e.data;
+
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = name;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
 };
 </script>
 </body>
