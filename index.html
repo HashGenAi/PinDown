@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>HEIC to PNG – No Freeze</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body{
   margin:0;
@@ -24,12 +23,6 @@ body{
   max-width:420px;
   text-align:center;
 }
-h2{ margin:0 0 10px; }
-p{
-  color:#94a3b8;
-  font-size:14px;
-}
-input{ margin:15px 0; }
 button{
   background:#22c55e;
   border:none;
@@ -38,64 +31,72 @@ button{
   font-size:16px;
   cursor:pointer;
 }
-button:disabled{
-  background:#334155;
-  cursor:not-allowed;
-}
+button:disabled{ background:#334155; }
 .status{
   margin-top:15px;
   font-size:14px;
   color:#94a3b8;
 }
+.error{
+  color:#f87171;
+  font-size:14px;
+}
+input[type="file"]{
+  margin-top:15px;
+}
 </style>
 </head>
-
 <body>
 <div class="box">
   <h2>HEIC to PNG</h2>
   <p>Private • No Upload • No Freeze</p>
 
   <input type="file" id="files" accept=".heic,.heif" multiple>
-  <br>
-  <button id="btn">Convert to PNG</button>
+  <br><br>
+  <button id="btn">Convert</button>
 
   <div class="status" id="status"></div>
+  <div class="error" id="error"></div>
 </div>
 
 <script>
 const worker = new Worker("./worker.js");
 const btn = document.getElementById("btn");
 const status = document.getElementById("status");
+const errorBox = document.getElementById("error");
 const input = document.getElementById("files");
 
-btn.addEventListener("click", () => {
+btn.onclick = () => {
   if (!input.files.length) {
-    alert("Please select HEIC files first");
+    alert("Select HEIC files first");
     return;
   }
 
-  btn.disabled = true;
+  errorBox.textContent = "";
   status.textContent = "Converting...";
+  btn.disabled = true;
 
-  // IMPORTANT FIX: send real array, not FileList
   worker.postMessage([...input.files]);
-});
+};
 
 worker.onmessage = (e) => {
+  if (e.data.error) {
+    errorBox.textContent = e.data.error;
+    btn.disabled = false;
+    status.textContent = "";
+    return;
+  }
+
   if (e.data.done) {
     status.textContent = "Done ✔";
     btn.disabled = false;
     return;
   }
 
-  const { blob, name } = e.data;
-
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  document.body.appendChild(a);
+  a.href = URL.createObjectURL(e.data.blob);
+  a.download = e.data.name;
   a.click();
-  a.remove();
 };
 </script>
 </body>
