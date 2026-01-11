@@ -1,4 +1,5 @@
-importScripts("https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js");
+// Local import (must be in the same directory)
+importScripts("./heic2any.min.js");
 
 onmessage = async (e) => {
   const files = e.data;
@@ -16,7 +17,7 @@ onmessage = async (e) => {
         name: file.name.replace(/\.(heic|heif)$/i, ".png")
       });
     } catch (err) {
-      console.error("Conversion failed:", err);
+      postMessage({ error: err.message });
     }
   }
 
